@@ -53,7 +53,7 @@ async function pull(item) {
 function createHtmlTable(rows) {
     let html = [];
     for (const item of rows) {
-        html.push(`<tr>${ item.map(item=>`<td>${item}</td>`).join('') }</tr>`)
+        html.push(`<tr>${item.map(item => `<td>${item}</td>`).join('')}</tr>`)
     }
     const tpl = fs.readFileSync('table.tpl', 'utf8');
     fs.writeFileSync('temp.html', tpl.replace('{{content}}', html.join('')), 'utf8');
@@ -73,20 +73,22 @@ async function main(argv) {
         const files = dir.reduce((map, name) => {
             const [id, n, lesson] = name.split(/[-\.]/);
             if (!map[n]) map[n] = [];
-            map[n].push({ id, ex: fs.readFileSync(path.resolve(__dirname, argv[3], name)), lesson });
+            map[n].push({ id, ex: fs.readFileSync(path.resolve(__dirname, argv[3], name)), lesson, ext: name.split('.').pop() });
             map[n].sort((a, b) => a.lesson - b.lesson);
             return map;
         }, {});
         const res = list.reduce((total, item) => {
-            for (const { id, ex, lesson } of files[item.n] || []) {
+            for (const { id, ex, lesson, ext } of files[item.n] || []) {
                 if (!id) {
                     total.push(['404', item.n, item.g, item.name]);
-                } else {
+                } else if (ext === 'html') {
                     total.push([id, item.n, item.g, item.name, `<a href="javascript:openURL('data:text/html;charset=utf-8;base64,${ex.toString('base64')}')" >第${lesson}节</a>`]);
+                } else {
+                    total.push([id, item.n, item.g, item.name, `<a href="javascript:openURL('data:text/javascript;charset=utf-8;base64,${ex.toString('base64')}')" >第${lesson}节</a>`]);
                 }
             }
             return total;
-        }, [])
+        }, []).sort((a, b) => (a[2] - b[2]) || (a[3] > b[3] ? -1 : 1));
         createHtmlTable(res);
     }
 }
