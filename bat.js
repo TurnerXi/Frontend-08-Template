@@ -7,9 +7,10 @@ const exec = util.promisify(require('child_process').exec);
 
 const data = fs.readFileSync('./repos.txt', 'utf8');
 const list = data.trim().split('\r\n').map(row => {
+    if (row.startsWith('#')) return false;
     const [n, g, name, repo] = row.split(/\s+/);
     return { n, g, name, repo, dirname: g + '组' + '_' + name }
-});
+}).filter(Boolean);
 
 function resolveDir(dirname) {
     return path.resolve(__dirname, dirname);
@@ -21,7 +22,7 @@ async function clone(item, isForce) {
         if (isForce) {
             fs.rmdirSync(dirname)
         } else {
-            return 'exists';
+            return 'alreay exists';
         }
     }
     try {
@@ -32,7 +33,7 @@ async function clone(item, isForce) {
         return 'cloned';
     } catch (e) {
         console.error(e);
-        return 'error';
+        return 'clone error';
     }
 
 }
@@ -53,7 +54,11 @@ async function pull(item) {
             }
         } catch (e) {
             console.log('\x1B[31m%s\x1B[0m', item.name + ' : ' + item.repo + ' : ' + e.stderr.replace(/\n$/, ''));
-            return await pull(item);
+            if (e.stderr.indexOf('SSL_ERROR_SYSCALL') > -1) {
+                return await pull(item);
+            } else {
+                return 'pull error';
+            }
         }
     } else {
         return await clone(item);
