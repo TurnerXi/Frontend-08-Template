@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { resolve } = require('path');
 const path = require('path');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
@@ -20,7 +21,7 @@ async function clone(item, isForce) {
         if (isForce) {
             fs.rmdirSync(dirname)
         } else {
-            return;
+            return 'exists';
         }
     }
     try {
@@ -28,8 +29,10 @@ async function clone(item, isForce) {
             cwd: './'
         });
         console.log(item.repo + 'is cloned');
+        return 'cloned';
     } catch (e) {
         console.error(e);
+        return 'error';
     }
 
 }
@@ -40,13 +43,20 @@ async function pull(item) {
         try {
             await exec(`git -C ${dirname} reset --hard `, { cwd: './' })
             const echo = await exec(`git -C ${dirname} pull`, { cwd: './' })
-            console.log('\x1B[32m%s\x1B[0m', item.name + ' : ' + item.repo + ' : ' + echo.stdout.replace(/\n$/, ''));
+            if (echo.stdout.trim() === 'Already up to date.') {
+                console.log('\033[32m%s\x1B[0m', item.name + ' : ' + item.repo + ' : ' + echo.stdout.replace(/\n$/, ''));
+                return 'not modified'
+            } else {
+                console.log('\033[33m%s\x1B[0m', item.name + ' : ' + item.repo + ' : ');
+                console.log('\033[33m%s\x1B[0m', echo.stdout.replace(/\n$/, ''))
+                return 'modified'
+            }
         } catch (e) {
-            console.error('\x1B[31m%s\x1B[0m', item.name + ' : ' + item.repo + ' : ' + e.stderr.replace(/\n$/, ''));
-            pull(item);
+            console.log('\x1B[31m%s\x1B[0m', item.name + ' : ' + item.repo + ' : ' + e.stderr.replace(/\n$/, ''));
+            return await pull(item);
         }
     } else {
-        await clone(item);
+        return await clone(item);
     }
 }
 
@@ -65,9 +75,13 @@ async function main(argv) {
             clone(item, argv[3] === '-f');
         }
     } else if (argv[2] === 'pull') {
-        for (const item of list) {
-            pull(item);
-        }
+        Promise.all(list.map(item => pull(item).then(result => ({ ...item, result })))).then((datas) => {
+            console.log(
+                datas.filter(data => data.result === 'modified' || data.result === 'cloned')
+                .map(item => `${item.n} ${item.g} ${item.name}`)
+                .join('\r\n')
+            );
+        })
     } else if (argv[2] === 'ex' && argv[3]) {
         const dir = fs.readdirSync(argv[3], 'utf8');
         const files = dir.reduce((map, name) => {
