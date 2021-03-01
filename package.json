@@ -1,0 +1,11 @@
+{
+  "name": "Front8",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:TurnerXi/Frontend-08-Template.git",
+  "author": "TurnerXi <290944015@qq.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "css": "^3.0.0"
+  }
+}

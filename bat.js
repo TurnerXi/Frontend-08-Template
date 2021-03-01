@@ -83,8 +83,8 @@ async function main(argv) {
         Promise.all(list.map(item => pull(item).then(result => ({ ...item, result })))).then((datas) => {
             console.log(
                 datas.filter(data => data.result === 'modified' || data.result === 'cloned')
-                .map(item => `${item.n} ${item.g} ${item.name}`)
-                .join('\r\n')
+                    .map(item => `${item.n} ${item.g} ${item.name} ${resolveDir(`${item.g}组_${item.name}`)}`)
+                    .join('\r\n')
             );
         })
     } else if (argv[2] === 'ex' && argv[3]) {
