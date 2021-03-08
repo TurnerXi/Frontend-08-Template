@@ -1,5 +1,4 @@
 const fs = require('fs');
-const { resolve } = require('path');
 const path = require('path');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
@@ -81,12 +80,23 @@ async function main(argv) {
         }
     } else if (argv[2] === 'pull') {
         Promise.all(list.map(item => pull(item).then(result => ({ ...item, result })))).then((datas) => {
+            console.log('Updated List: ');
             console.log(
                 datas.filter(data => data.result === 'modified' || data.result === 'cloned')
-                    .map(item => `${item.n} ${item.g} ${item.name} ${resolveDir(`${item.g}组_${item.name}`)}`)
-                    .join('\r\n')
+                .map(item => `${item.n} ${item.g} ${item.name} ${resolveDir(`${item.g}组_${item.name}`)}`)
+                .join('\r\n')
             );
         })
+    } else if (argv[2] === 'stat' && argv[3]) {
+        let count = 0;
+        for (const item of list) {
+            let files = fs.readdirSync(resolveDir(`./${item.g}组_${item.name}/${argv[3]}`), 'utf8') || [];
+            if (files.filter(f => f !== 'NOTE.md').length > 0) {
+                count++;
+                console.log(`${item.n} ${item.g} ${item.name} ${resolveDir(`./${item.g}组_${item.name}`)}`)
+            }
+        }
+        console.log('total: ', count);
     } else if (argv[2] === 'ex' && argv[3]) {
         const dir = fs.readdirSync(argv[3], 'utf8');
         const files = dir.reduce((map, name) => {

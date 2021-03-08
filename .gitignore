@@ -1,4 +1,4 @@
-/node_modules/
+**/node_modules/
 [12345]组_*/
 encrypto.js
 repos.txt
