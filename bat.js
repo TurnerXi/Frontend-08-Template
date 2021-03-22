@@ -84,7 +84,7 @@ async function main(argv) {
             let _list = datas.filter(data => data.result === 'modified' || data.result === 'cloned')
             console.log(
                 _list.map(item => `${item.n} ${item.g} ${item.name} ${resolveDir(`${item.g}组_${item.name}`)}`)
-                .join('\r\n')
+                    .join('\r\n')
             );
             console.log(`total count: ${_list.length}`);
         })
@@ -94,7 +94,11 @@ async function main(argv) {
             let files = fs.readdirSync(resolveDir(`./${item.g}组_${item.name}/${argv[3]}`), 'utf8') || [];
             if (files.filter(f => f !== 'NOTE.md').length > 0) {
                 count++;
-                console.log(`${item.n} ${item.g} ${item.name} ${resolveDir(`./${item.g}组_${item.name}`)}`)
+                const cwd = `./${item.g}组_${item.name}`;
+                const echo = await exec(`git -C ${cwd} config remote.origin.url`, { cwd: './' })
+                const output = `${item.n} ${item.g} ${item.name} ${resolveDir(cwd)}`.trim();
+                const len = output.replace(/[\u4E00-\u9FA5]/g, '  ').length;
+                console.log(output + Array(100 - len).fill(' ').join('') + echo.stdout.trim());
             }
         }
         console.log('total: ', count);
