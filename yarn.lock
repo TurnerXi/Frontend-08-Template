@@ -21,6 +21,7 @@ decode-uri-component@^0.2.0:
 images@^3.2.3:
   version "3.2.3"
   resolved "https://registry.npm.taobao.org/images/download/images-3.2.3.tgz#8e86421df163d9b3a60ee4d1dc7cd8205f2d2bd7"
+  integrity sha1-joZCHfFj2bOmDuTR3HzYIF8tK9c=
 
 inherits@^2.0.4:
   version "2.0.4"

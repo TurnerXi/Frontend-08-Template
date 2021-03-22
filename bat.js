@@ -81,11 +81,12 @@ async function main(argv) {
     } else if (argv[2] === 'pull') {
         Promise.all(list.map(item => pull(item).then(result => ({ ...item, result })))).then((datas) => {
             console.log('Updated List: ');
+            let _list = datas.filter(data => data.result === 'modified' || data.result === 'cloned')
             console.log(
-                datas.filter(data => data.result === 'modified' || data.result === 'cloned')
-                .map(item => `${item.n} ${item.g} ${item.name} ${resolveDir(`${item.g}组_${item.name}`)}`)
+                _list.map(item => `${item.n} ${item.g} ${item.name} ${resolveDir(`${item.g}组_${item.name}`)}`)
                 .join('\r\n')
             );
+            console.log(`total count: ${_list.length}`);
         })
     } else if (argv[2] === 'stat' && argv[3]) {
         let count = 0;
