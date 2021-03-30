@@ -53,7 +53,8 @@ async function pull(item) {
             }
         } catch (e) {
             console.log('\x1B[31m%s\x1B[0m', item.name + ' : ' + item.repo + ' : ' + e.stderr.replace(/\n$/, ''));
-            if (e.stderr.indexOf('SSL_ERROR_SYSCALL') > -1) {
+            if (e.stderr.indexOf('SSL_ERROR_SYSCALL') > -1 ||
+                e.stderr.indexOf('Failed to receive SOCKS5 connect request ack') > -1) {
                 return await pull(item);
             } else {
                 return 'pull error';
@@ -84,7 +85,7 @@ async function main(argv) {
             let _list = datas.filter(data => data.result === 'modified' || data.result === 'cloned')
             console.log(
                 _list.map(item => `${item.n} ${item.g} ${item.name} ${resolveDir(`${item.g}组_${item.name}`)}`)
-                    .join('\r\n')
+                .join('\r\n')
             );
             console.log(`total count: ${_list.length}`);
         })
